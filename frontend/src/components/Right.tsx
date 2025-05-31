@@ -23,7 +23,7 @@ import {
 
 export function Right() {
     return (
-        <ResizablePanel defaultSize={30} minSize={10} maxSize={40}>
+        <ResizablePanel defaultSize={35} minSize={10} maxSize={40}>
           <div className="h-full flex flex-col justify-end p-6 bg-white">
             {/* Unified input box */}
             <div className="w-full bg-white border border-input rounded-xl p-3 flex flex-col gap-2">
@@ -32,7 +32,7 @@ export function Right() {
                 <span className="font-medium">@ Add context</span>
               </div>
               {/* Textarea */}
-              <Textarea placeholder="Plan, search, build anything" className="mb-0 bg-white border-white border-none shadow-none resize-none focus:ring-0 focus:border-none" />
+              <Textarea placeholder="Plan, search, write anything" className="mb-0 bg-white border-white border-none shadow-none resize-none focus-visible:ring-0 focus-visible:border-none" />
               {/* Action row */}
               <div className="flex items-center gap-2 mt-1">
                 {/* Dropdown (Agent) */}
