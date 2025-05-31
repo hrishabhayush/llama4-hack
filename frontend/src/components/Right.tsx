@@ -19,6 +19,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Image, SendHorizonal } from "lucide-react"
 
 
 export function Right() {
@@ -92,13 +93,9 @@ export function Right() {
                 </DropdownMenu>
                 <div className="flex items-center gap-2 ml-auto">
                   {/* Image upload button (icon placeholder) */}
-                  <Button variant="ghost" size="icon" aria-label="Upload image">
-                    [Img]
-                  </Button>
+                  <Image />
                   {/* Send button (icon placeholder) */}
-                  <Button variant="ghost" size="icon" aria-label="Send">
-                    [Send]
-                  </Button>
+                  <SendHorizonal />
                 </div>
               </div>
             </div>
