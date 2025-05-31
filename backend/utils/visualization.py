@@ -1,0 +1,1 @@
+# generate thought map from vectorized "main points"
