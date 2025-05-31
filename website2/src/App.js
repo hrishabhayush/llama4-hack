@@ -67,22 +67,23 @@ Start writing your content here...`);
         </div>
 
         {/* Main Content Area - Rich Text Editor */}
-        <div className="flex-1 bg-white">
-          <div className="h-full overflow-auto">
-            <div
-              className="editor-content"
-              contentEditable
-              suppressContentEditableWarning={true}
-              onInput={(e) => setEditorContent(e.target.innerText)}
-              style={{ minHeight: 'calc(100vh - 60px)' }}
-            >
-              {editorContent}
-            </div>
+        <div className="flex-1 bg-white flex flex-col">
+          <div
+            className="editor-content flex-1 overflow-auto p-6"
+            contentEditable
+            suppressContentEditableWarning={true}
+            onInput={(e) => setEditorContent(e.target.innerText)}
+          >
+            {editorContent}
           </div>
+          {/*
+            If you need a bottom toolbar later, you can put it here:
+            <div className="h-16 border-t">…toolbar…</div>
+          */}
         </div>
 
         {/* Right Sidebar - Review Suggestions */}
-        <div className="w-75 bg-sidebar-bg border-l border-border-light shadow-sm">
+        <div className="w-75 bg-sidebar-bg border-l border-border-light shadow-sm h-[calc(100vh-60px)]">
           {/* Tab Navigation */}
           <div className="border-b border-border-light">
             <div className="flex">
