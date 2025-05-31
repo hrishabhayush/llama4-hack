@@ -38,14 +38,16 @@ export function Center() {
                 {file.path}
               </div>
               {/* Editable file content */}
-              <textarea
-                className="p-4 font-mono text-xs whitespace-pre bg-white h-full w-full outline-none resize-none min-h-0 flex-1"
-                style={{ maxWidth: '150ch' }}
-                value={file.content}
-                onChange={e => updateFileContent(file.name, e.target.value)}
-                spellCheck={true}
-                wrap="on"
-              />
+              <div className="flex-1 flex flex-col h-full w-full overflow-y-auto overflow-x-hidden items-center">
+                <textarea
+                  className="p-4 font-mono text-xs bg-white h-full outline-none resize-none min-h-0 flex-1"
+                  style={{ maxWidth: '153ch', width: '100%' }}
+                  value={file.content}
+                  onChange={e => updateFileContent(file.name, e.target.value)}
+                  spellCheck={false}
+                  wrap="soft"
+                />
+              </div>
             </TabsContent>
           ))}
         </Tabs>
