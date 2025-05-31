@@ -11,8 +11,8 @@ import { FileProvider } from "./FileContext"
 export function ThreePanel() {
   return (
     <FileProvider>
-      <div style={{ height: "100vh", width: "100vw" }}>
-        <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+      <div className="h-screen w-screen flex flex-col">
+        <ResizablePanelGroup direction="horizontal" className="flex-1 h-full w-full">
           <Left />
           <ResizableHandle />
           <Center />

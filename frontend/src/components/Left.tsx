@@ -8,10 +8,10 @@ import {
     AccordionContent,
   } from "@/components/ui/accordion";
   import { useFileContext } from "./FileContext";
-import { First } from "./First";
-import { Second } from "./Second";
-import { Third } from "./Third";
-import { Fourth } from "./Fourth";
+import { First } from "./leftcomp/First";
+import { Second } from "./leftcomp/Second";
+import { Third } from "./leftcomp/Third";
+import { Fourth } from "./leftcomp/Fourth";
 
 export function Left() {
   const { openFile } = useFileContext();

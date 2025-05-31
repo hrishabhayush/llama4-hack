@@ -4,7 +4,7 @@ import {
     AccordionTrigger,
     AccordionContent,
   } from "@/components/ui/accordion";
-  import { useFileContext } from "./FileContext";
+  import { useFileContext } from "../FileContext";
 
 export function Third() {
     return (
