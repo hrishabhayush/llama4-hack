@@ -97,12 +97,25 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
       const zoomLevel = cy.zoom();
       console.log('Zoom level:', zoomLevel); // Debug log
       
-      // Show labels for regular nodes when zoomed in (zoom > 1.5)
-      if (zoomLevel > 1.5) {
-        cy.$('.regular-node').style('label', 'data(label)');
+      // Show labels for regular nodes when zoomed in (zoom > 1.2)
+      if (zoomLevel > 2) {
+        cy.nodes('.regular-node').forEach((node) => {
+          node.style('label', node.data('label'));
+        });
+        console.log('Showing regular node labels');
       } else {
-        cy.$('.regular-node').style('label', '');
+        cy.nodes('.regular-node').forEach((node) => {
+          node.style('label', '');
+        });
+        console.log('Hiding regular node labels');
       }
+    });
+
+    // Initial setup - make sure regular nodes start without labels
+    cy.ready(() => {
+      cy.nodes('.regular-node').forEach((node) => {
+        node.style('label', '');
+      });
     });
 
     cy.on('tap', 'node', (evt) => {
