@@ -6,7 +6,7 @@ from backend.utils.vectorize import create_vector_db, find_similar_idea
 from backend.utils.LLMRequest import LLMRequest
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 
 app = FastAPI()
 
@@ -16,6 +16,7 @@ app.add_middleware(
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Content-Disposition"],  # Add this line
     )
 
 UPLOAD_DIR = "backend/files"
@@ -118,5 +119,18 @@ Your response should be approximately 10 pages long."""
     # query the vector database with the prompt
     # return the response
     pass
+
+@app.get("/files/{filename}")
+async def get_pdf(filename: str):
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    if os.path.exists(file_path):
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Content-Disposition": f'inline; filename="{filename}"'
+        }
+        return FileResponse(file_path, media_type='application/pdf', headers=headers)
+    return {"error": "File not found"}
 
 

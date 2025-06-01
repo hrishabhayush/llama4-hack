@@ -6,7 +6,7 @@ export type FileType = {
   name: string;
   path: string;
   content: string;
-  type?: 'text' | 'graph'; // Add type to distinguish between text files and graph files
+  type?: 'text' | 'graph' | 'pdf'; // Add type to distinguish between text files and graph files
 };
 
 const initialFiles: FileType[] = [
