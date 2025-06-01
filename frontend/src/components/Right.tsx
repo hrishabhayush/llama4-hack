@@ -64,7 +64,7 @@ export function Right() {
     setTimeout(() => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: `This is a simulated response to: "${userMessage.content}"`,
+        content: `${userMessage.content}`,
         role: 'assistant',
         timestamp: new Date()
       };
