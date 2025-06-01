@@ -3,6 +3,10 @@ import json
 from .LLMRequest import LLMRequest
 import re
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 class Idea:
     def __init__(self, point, chunk_id, quotation_id):
@@ -20,12 +24,14 @@ class Chunk:
     _instance_count = 0
     _point_instance_count = 0
     
-    #inference for ideas for chunks too 
     def __init__(self, title, author):
         self.title = title
         self.author = author
         self.chunk_id = self.chunk_id_generator()
-        self.quotation={}
+        self.quotation = {}
+        # Use MAX_WORKERS_PER_CHUNK from environment variables
+        self._max_workers = int(os.getenv('MAX_WORKERS_PER_CHUNK', '10'))
+        # TODO: we should try to take in page numbers for better citations.
     
     def chunk_id_generator(self):
         Chunk._instance_count += 1
@@ -41,11 +47,42 @@ class Chunk:
         # Remove all control characters except \n and \t
         return re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', text)
     
-    def chunk_to_idea(self,chunk, debug=os.getenv("DEBUG").lower() == "true"):
-        '''
-        This function takes a json object with a "text" field, return a list of idea objects
-        '''
-        chunk_text= chunk["text"]
+    def process_chunks_concurrently(self, chunks, debug=False):
+        """
+        Process multiple chunks concurrently using ThreadPoolExecutor
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from tqdm import tqdm
+        
+        all_ideas = []
+        
+        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
+            # Submit all chunks for processing
+            future_to_chunk = {
+                executor.submit(self._process_single_chunk, chunk, debug): chunk 
+                for chunk in chunks
+            }
+            
+            # Process completed futures as they come in
+            for future in tqdm(as_completed(future_to_chunk), 
+                             total=len(chunks),
+                             desc="Processing chunks",
+                             unit="chunk"):
+                chunk = future_to_chunk[future]
+                try:
+                    ideas = future.result()
+                    all_ideas.extend(ideas)
+                except Exception as e:
+                    print(f"Chunk processing failed: {str(e)}")
+                    continue
+                
+        return all_ideas
+    
+    def _process_single_chunk(self, chunk, debug):
+        """
+        Process a single chunk and return its ideas
+        """
+        chunk_text = chunk["text"]
         prompt = f"""Imagine you are an expert in the field. Summarise the following text into 0 to 4 main points. Each point should be concise (1-3 sentences) and supported by a direct quotation.
 
 Text to summarize:
@@ -64,10 +101,7 @@ Do not include any other text in your response outside of the JSON array.
 Do not consider any references or citations."""
         
         response_data = LLMRequest.inference(prompt, debug=debug)
-
-        #print("Raw LLM Response: \n\n\n", response_data)  # Debug print
         
-        # Parse the response and create Idea instances
         try:
             # Clean control characters and parse the JSON string into a list
             if isinstance(response_data, str):
@@ -83,17 +117,23 @@ Do not consider any references or citations."""
                 )
                 ideas.append(idea)
                 self.quotation[idea.quotation_id] = point["quotation"]
-            #print("\n\n\nCreated Ideas:", [idea.to_string() for idea in ideas])  # Debug print
             return ideas
         except json.JSONDecodeError as e:
-            print("Error parsing JSON:", e)  # Debug print
-            print("Failed character:", response_data[e.pos])  # Debug print
-            print("Failed Response:", response_data)  # Debug print
+            print(f"Error parsing JSON for chunk: {e}")
             return []
         except Exception as e:
-            print("Unexpected error:", e)  # Debug print
-            print("Response data:", response_data)  # Debug print
+            print(f"Unexpected error processing chunk: {e}")
             return []
+    
+    def chunk_to_idea(self, chunk, debug=os.getenv("DEBUG").lower() == "true"):
+        '''
+        This function takes a json object with a "text" field, return a list of idea objects
+        If multiple chunks are provided, processes them concurrently
+        '''
+        if isinstance(chunk, list):
+            return self.process_chunks_concurrently(chunk, debug)
+        else:
+            return self._process_single_chunk(chunk, debug)
     
     def to_string(self):
         return f"Title: {self.title}, Author: {self.author}, Chunk ID: {self.chunk_id}"
