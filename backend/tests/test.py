@@ -24,7 +24,7 @@ def test_chunk_to_idea():
     print(ideas)
 
 def test_generate():
-    return generate("data/", "What is the main idea of the white paper?")
+    return generate("data/", "Write an essay about the structure of Solana stack and technology.")
 
 #Testing
 #test_preprocessing()
