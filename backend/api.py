@@ -1,5 +1,5 @@
-// Function declarations
-
+#Function declarations
+import os
 # if user doesn't like the response, they can edit it
 def edit_response():
     pass 
