@@ -4,9 +4,11 @@ from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
 from backend.utils.vectorize import create_vector_db, find_similar_idea_from_embedding
 from backend.utils.LLMRequest import LLMRequest
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, Response
+from backend.utils.env_checker import get_environment_config
+from backend.utils.db_log import setup_logger
 from backend.algo.core import cluster_ideas, get_cluster_summaries
 
 # Initialize environment once at startup
@@ -25,6 +27,9 @@ app.add_middleware(
     )
 
 UPLOAD_DIR = "backend/files"
+
+ENV_CONFIG = get_environment_config()
+logger = setup_logger(__name__)
 
 @app.get("/api/uploaded-files")
 async def list_uploaded_files():
@@ -45,8 +50,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 def edit_response():
     pass 
 
-@app.post("/api/generate")
-def generate(source_dir: str, prompt: str, debug = None):
+def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "true").lower() == "true"):
     # Use the global environment config instead of checking again
     debug = ENV_CONFIG['debug_mode'] if debug is None else debug
     # process the pdfs
@@ -142,7 +146,7 @@ Your response should be approximately 10 pages long."""
 
     # get response from Llama
     response = LLMRequest.inference(llama_prompt, debug=debug)
-    
+    logger.info(f"Response: {response}")
     return response
 
     
@@ -150,7 +154,6 @@ Your response should be approximately 10 pages long."""
     # store in vector database
     # query the vector database with the prompt
     # return the response
-    pass
 
 @app.get("/files/{filename}")
 async def get_pdf(filename: str):
@@ -164,5 +167,13 @@ async def get_pdf(filename: str):
         }
         return FileResponse(file_path, media_type='application/pdf', headers=headers)
     return {"error": "File not found"}
+
+@app.post("/api/generate")
+async def generate_endpoint(request: Request):
+    data = await request.json()
+    prompt = data.get("prompt", "")
+    source_dir = data.get("source_dir", "backend/files")
+    response = generate(source_dir=source_dir, prompt=prompt)
+    return {"response": response}
 
 
