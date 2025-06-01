@@ -11,12 +11,19 @@ from sentence_transformers import SentenceTransformer
 from typing import List
 from .Database import Idea
 from .env_checker import check_environment, EnvironmentError
+from .db_log import setup_logger
+
+# Get logger for this module
+logger = setup_logger(__name__)
 
 # Check environment variables before proceeding
+logger.info("Initializing vectorization module...")
 check_environment()
 
 # Initialize the sentence transformer model
+logger.info("Loading sentence transformer model...")
 model = SentenceTransformer('all-MiniLM-L6-v2')
+logger.info("Model loaded successfully")
 
 def get_qdrant_client():
     """
@@ -28,23 +35,24 @@ def get_qdrant_client():
     
     if debug_mode:
         # Use local Qdrant instance in debug mode
+        logger.info("Initializing local Qdrant instance (Debug mode)")
         client = QdrantClient(path="./qdrant_data")
-        print("Using local Qdrant instance (Debug mode)")
     else:
         # Use production Qdrant instance
         qdrant_url = os.getenv('QDRANT_URL')
         qdrant_api_key = os.getenv('QDRANT_API_KEY')
         
+        logger.info(f"Connecting to Qdrant at {qdrant_url}")
         client = QdrantClient(
             url=qdrant_url,
             api_key=qdrant_api_key if qdrant_api_key else None
         )
-        print(f"Connected to Qdrant at {qdrant_url}")
     
     return client
 
 def get_embedding(text: str) -> List[float]:
     """Convert text to embedding vector."""
+    logger.debug(f"Generating embedding for text: {text[:50]}...")
     return model.encode(text).tolist()
 
 def create_vector_db(sources: List[Idea], collection_name: str = "ideas") -> QdrantClient:
@@ -58,10 +66,13 @@ def create_vector_db(sources: List[Idea], collection_name: str = "ideas") -> Qdr
     Returns:
         QdrantClient instance
     """
+    logger.info(f"Creating vector database with {len(sources)} ideas")
+    
     # Initialize Qdrant client based on environment
     client = get_qdrant_client()
     
     # Create a new collection
+    logger.info(f"Creating collection: {collection_name}")
     client.recreate_collection(
         collection_name=collection_name,
         vectors_config=models.VectorParams(
@@ -71,8 +82,12 @@ def create_vector_db(sources: List[Idea], collection_name: str = "ideas") -> Qdr
     )
     
     # Prepare points for insertion
+    logger.info("Generating embeddings for ideas...")
     points = []
     for i, idea in enumerate(sources):
+        if i > 0 and i % 100 == 0:  # Log progress for large datasets
+            logger.info(f"Processed {i}/{len(sources)} ideas")
+            
         embedding = get_embedding(idea.main_point)
         
         points.append(models.PointStruct(
@@ -86,10 +101,12 @@ def create_vector_db(sources: List[Idea], collection_name: str = "ideas") -> Qdr
         ))
     
     # Upload points in batches
+    logger.info("Uploading points to Qdrant...")
     client.upsert(
         collection_name=collection_name,
         points=points
     )
+    logger.info("Vector database creation completed successfully")
     
     return client
 
@@ -106,10 +123,13 @@ def find_similar_idea(client: QdrantClient, prompt: str, collection_name: str = 
     Returns:
         List of dictionaries containing the similar ideas and their metadata
     """
+    logger.info(f"Searching for ideas similar to: {prompt[:50]}...")
+    
     # Get embedding for the prompt
     prompt_embedding = get_embedding(prompt)
     
     # Search for similar vectors
+    logger.debug(f"Querying collection '{collection_name}' for {limit} similar ideas")
     search_result = client.search(
         collection_name=collection_name,
         query_vector=prompt_embedding,
@@ -125,5 +145,8 @@ def find_similar_idea(client: QdrantClient, prompt: str, collection_name: str = 
             "quotation_id": hit.payload["quotation_id"],
             "similarity_score": hit.score
         })
+    
+    logger.info(f"Found {len(results)} similar ideas")
+    logger.debug(f"Search results: {results}")
     
     return results
