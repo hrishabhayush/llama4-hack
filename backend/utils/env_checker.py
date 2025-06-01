@@ -3,7 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from enum import Enum
 from typing import Optional, Dict, Any
-from db_log import setup_logger
+from .db_log import setup_logger
 
 # Get logger for this module
 logger = setup_logger(__name__)

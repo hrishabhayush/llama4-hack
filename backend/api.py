@@ -16,11 +16,11 @@ def generate(sources, prompt):
     chunks = preprocessor.text_to_chunks(pdf_texts)
 
     # create a chunk object
-    chunk = Chunk(sources, "Quentin Kniep")
+    chunk_obj = Chunk(sources, "Quentin Kniep")
     ideas = []
-    for chunk in chunks:
+    for chunk_dict in chunks:
         # Extend the ideas list with the list returned by chunk_to_idea
-        ideas.extend(chunk.chunk_to_idea(chunk))
+        ideas.extend(chunk_obj.chunk_to_idea(chunk_dict))
     
     # create a vector database
     client = create_vector_db(ideas)
@@ -32,15 +32,42 @@ def generate(sources, prompt):
     for idea in ideas:
         for similar_idea in similar_ideas:
             if idea.quotation_id == similar_idea['quotation_id']:
-                similar_idea['quotation'] = chunk.quotation[idea.quotation_id]
+                similar_idea['quotation'] = chunk_obj.quotation[idea.quotation_id]
+    
+    # Print similar ideas and their quotations
+    print("\nSimilar Ideas and Quotations:")
+    for idea in similar_ideas:
+        print(f"\nMain Point: {idea['main_point']}")
+        print(f"Quotation: {idea['quotation']}")
+        print(f"Similarity Score: {idea['similarity_score']}")
     
     # format the response using Llama
     context = "\n".join([f"Main point: {idea['main_point']}\nQuotation: {idea['quotation']}" for idea in similar_ideas])
-    llama_prompt = f"""Based on the following context, provide a comprehensive response to: {prompt}
+    llama_prompt = f"""You are an expert research assistant. Using the following context from academic sources, provide a comprehensive answer to the user's question.
 
-Context:
-{context}"""
+User's question: {prompt}
 
+Relevant context from sources:
+{context}
+
+Please provide a detailed response that:
+1. Directly addresses the user's question
+2. Uses specific evidence from the provided quotations
+3. Synthesizes the main points into a coherent argument
+4. Maintains academic rigor and precision
+
+Write your response as a well-structured paragraph that:
+- Begins with a clear thesis statement
+- Develops each main point with supporting evidence
+- Uses smooth transitions between ideas
+- Concludes with a synthesis of the key points
+- Maintains a formal, academic tone throughout
+
+Your response should be approximately 1-2 paragraphs long."""
+
+    # get response from Llama
+    response = Llama.inference(llama_prompt)
+    
     return response
 
     

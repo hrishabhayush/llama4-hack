@@ -60,10 +60,14 @@ Ensure each point is clear and each quotation directly supports its point."""
         
         response_data = Llama.inference(prompt)
 
-        print("Raw LLM Response: \n\n\n", response_data)  # Debug print
+        #print("Raw LLM Response: \n\n\n", response_data)  # Debug print
         
         # Parse the response and create Idea instances
         try:
+            # Parse the JSON string into a dictionary
+            if isinstance(response_data, str):
+                response_data = json.loads(response_data)
+            
             ideas = []
             for point in response_data["main_points"]:
                 idea = Idea(
@@ -73,11 +77,15 @@ Ensure each point is clear and each quotation directly supports its point."""
                 )
                 ideas.append(idea)
                 self.quotation[idea.quotation_id] = point["quotation"]
-            print("\n\n\nCreated Ideas:", [idea.to_string() for idea in ideas])  # Debug print
+            #print("\n\n\nCreated Ideas:", [idea.to_string() for idea in ideas])  # Debug print
             return ideas
         except json.JSONDecodeError as e:
             print("Error parsing JSON:", e)  # Debug print
             print("Failed Response:", response_data)  # Debug print
+            return []
+        except Exception as e:
+            print("Unexpected error:", e)  # Debug print
+            print("Response data:", response_data)  # Debug print
             return []
     
     def to_string(self):
