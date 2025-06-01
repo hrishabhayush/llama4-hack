@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, FileResponse, Response
 from backend.utils.env_checker import get_environment_config
 from backend.utils.db_log import setup_logger
 from backend.algo.core import cluster_ideas, get_cluster_summaries
+from backend.utils.env_checker import check_environment
 
 # Initialize environment once at startup
 check_environment()
@@ -88,11 +89,22 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
         cluster_similar_ideas = find_similar_idea_from_embedding(client, centroid.tolist(), limit=3)
         similar_ideas.extend(cluster_similar_ideas)
     
+    # match quotation with ideas
+    for idea in ideas:
+        for similar_idea in similar_ideas:
+            if idea.quotation_id == similar_idea['quotation_id']:
+                similar_idea['quotation'] = chunk_obj.quotation[idea.quotation_id]
+
+    # Ensure all similar_ideas have a 'quotation' key
+    for idea in similar_ideas:
+        if 'quotation' not in idea:
+            idea['quotation'] = 'N/A'
+
     # Print similar ideas and their quotations
     print("\nSimilar Ideas and Quotations:")
     for idea in similar_ideas:
         print(f"\nMain Point: {idea['main_point']}")
-        print(f"Quotation: {idea['quotation']}")
+        print(f"Quotation: {idea.get('quotation', 'N/A')}")
         print(f"Similarity Score: {idea['similarity_score']}")
     
     # format the response using Llama
