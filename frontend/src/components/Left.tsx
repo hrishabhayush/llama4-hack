@@ -27,7 +27,7 @@ export function Left() {
             height={40}
             className="object-contain"
           />
-          <span className="mr-2 font-bold">Llama on Fly</span>
+          <span className="mr-2 font-bold font-mono text-[14px]">Llama on Fly</span>
         </div>
         <Accordion type="multiple" className="w-full" defaultValue={["LLAMA4-HACK"]}>
           {/* LLAMA4-HACK project root */}
