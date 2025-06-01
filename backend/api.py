@@ -4,12 +4,20 @@ from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
 from backend.utils.vectorize import create_vector_db, find_similar_idea
 from backend.utils.LLMRequest import LLMRequest
+from backend.utils.env_checker import check_environment, get_environment_config
+
+# Initialize environment once at startup
+check_environment()
+ENV_CONFIG = get_environment_config()
 
 # if user doesn't like the response, they can edit it
 def edit_response():
     pass 
 
-def generate(source_dir, prompt, debug=os.getenv("DEBUG").lower() == "true"):
+def generate(source_dir, prompt, debug=None):
+    # Use the global environment config instead of checking again
+    debug = ENV_CONFIG['debug_mode'] if debug is None else debug
+    
     # process the pdfs
     preprocessor = Preprocessor()
     # create list of pdfs from the source_dir
@@ -37,6 +45,8 @@ def generate(source_dir, prompt, debug=os.getenv("DEBUG").lower() == "true"):
     client = create_vector_db(ideas)
     
     # find similar ideas to the prompt
+    # TODO: we use k-means cluster to find 
+    # "clouds" of ideas and present these as input to LLM
     similar_ideas = find_similar_idea(client, prompt, limit=3)
     
     # match quotation with ideas
