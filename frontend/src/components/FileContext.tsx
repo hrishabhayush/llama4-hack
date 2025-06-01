@@ -6,6 +6,7 @@ export type FileType = {
   name: string;
   path: string;
   content: string;
+  type?: 'text' | 'graph'; // Add type to distinguish between text files and graph files
 };
 
 const initialFiles: FileType[] = [
@@ -13,21 +14,48 @@ const initialFiles: FileType[] = [
     name: "Left.tsx",
     path: "frontend/src/components/Left.tsx",
     content: "// Content of Left.tsx...",
+    type: "text",
   },
   {
     name: "Right.tsx",
     path: "frontend/src/components/Right.tsx",
     content: "// Content of Right.tsx...",
+    type: "text",
   },
   {
     name: "Center.tsx",
     path: "frontend/src/components/Center.tsx",
     content: "// Content of Center.tsx...",
+    type: "text",
   },
   {
     name: "ThreePanel.tsx",
     path: "frontend/src/components/ThreePanel.tsx",
     content: "// Content of ThreePanel.tsx...",
+    type: "text",
+  },
+  {
+    name: "KnowledgeGraph.graph",
+    path: "knowledge-map/KnowledgeGraph.graph",
+    content: `{
+  "nodes": [
+    { "id": "1", "label": "What is AI?" },
+    { "id": "2", "label": "Machine Learning" },
+    { "id": "3", "label": "Deep Learning" },
+    { "id": "4", "label": "Neural Networks" },
+    { "id": "5", "label": "Natural Language Processing" },
+    { "id": "6", "label": "Computer Vision" }
+  ],
+  "edges": [
+    { "source": "1", "target": "2", "weight": 0.8 },
+    { "source": "2", "target": "3", "weight": 0.9 },
+    { "source": "2", "target": "4", "weight": 0.7 },
+    { "source": "1", "target": "5", "weight": 0.6 },
+    { "source": "1", "target": "6", "weight": 0.5 },
+    { "source": "3", "target": "4", "weight": 0.95 }
+  ]
+}`,
+    type: "graph",
   },
 ];
 
