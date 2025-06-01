@@ -13,9 +13,12 @@ from dataclasses import dataclass
 from .db_log import setup_logger
 from tqdm import tqdm
 from dotenv import load_dotenv
+from backend.utils.env_checker import get_environment_config
 # Get logger for this module
 load_dotenv()
 logger = setup_logger(__name__)
+
+ENV_CONFIG = get_environment_config()
 
 class Environment(Enum):
     DEBUG = "debug"
@@ -73,8 +76,6 @@ class Preprocessor:
         """
         Initialize resource configuration based on environment
         """
-        from backend.api import ENV_CONFIG
-        
         env_type = Environment.DEBUG if ENV_CONFIG['debug_mode'] else Environment.PRODUCTION
         
         if env_type == Environment.PRODUCTION:

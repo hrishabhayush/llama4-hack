@@ -211,17 +211,27 @@ def check_environment() -> None:
 def get_environment_config() -> Dict[str, Any]:
     """
     Get the current environment configuration.
-    Returns a dictionary with all environment settings.
+    Returns a dictionary with all environment settings, properly parsed.
     """
+    def parse_int(var, default=None):
+        try:
+            val = os.getenv(var)
+            return int(val) if val is not None else default
+        except Exception:
+            return default
+
     config = {
         'debug_mode': os.getenv('DEBUG', 'true').lower() == 'true',
         'qdrant_url': os.getenv('QDRANT_URL'),
         'qdrant_api_key': os.getenv('QDRANT_API_KEY'),
-        'memory_limit_gb': _parse_memory_limit('MEMORY_LIMIT_GB'),
-        'gpu_memory_limit': _parse_memory_limit('GPU_MEMORY_LIMIT'),
-        'log_level': os.getenv('LOG_LEVEL', 'INFO').upper()
+        'memory_limit_gb': parse_int('MEMORY_LIMIT_GB'),
+        'gpu_memory_limit': parse_int('GPU_MEMORY_LIMIT'),
+        'log_level': os.getenv('LOG_LEVEL', 'INFO').upper(),
+        'min_chunk_size': parse_int('MIN_CHUNK_SIZE', 100),
+        'max_chunk_size': parse_int('MAX_CHUNK_SIZE', 1000),
+        'max_workers_per_chunk': parse_int('MAX_WORKERS_PER_CHUNK', 4),
+        'llm_model': os.getenv('LLM', 'llama'),
     }
-    
     return config
 
 def _parse_memory_limit(env_var: str) -> Optional[int]:

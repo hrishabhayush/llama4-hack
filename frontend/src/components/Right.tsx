@@ -46,6 +46,8 @@ export function Right() {
     }
   };
 
+  const PDF_DIR = "backend/files";
+  
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -60,17 +62,35 @@ export function Right() {
     setInput("");
     setIsLoading(true);
 
-    // Simulate response delay
-    setTimeout(() => {
+    try {
+      // Call backend API (adjust the URL if needed)
+      const res = await fetch("http://localhost:8000/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: userMessage.content, source_dir: PDF_DIR })
+      });
+      console.log(res);
+      const data = await res.json();
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: `${userMessage.content}`,
+        content: data.response || "No response from backend.",
         role: 'assistant',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: "Error: Could not get response from backend.",
+          role: 'assistant',
+          timestamp: new Date()
+        }
+      ]);
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {

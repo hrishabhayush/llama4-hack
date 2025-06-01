@@ -55,10 +55,6 @@ class LLMRequest:
         logger.debug(f"Prompt: {prompt[:200]}...")  # Log first 200 chars of prompt
         
         try:
-            if debug:
-                # In debug mode, return a mock response
-                logger.info(f"Debug mode - LLM call #{call_number} completed")
-                return "This is a debug response."
             
             if cls.client is None:
                 cls.initialize_client()

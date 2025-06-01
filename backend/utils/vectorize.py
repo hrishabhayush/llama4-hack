@@ -12,6 +12,7 @@ from typing import List
 from .Database import Idea
 from .db_log import setup_logger
 from tqdm import tqdm
+from backend.utils.env_checker import get_environment_config
 
 # Get logger for this module
 logger = setup_logger(__name__)
@@ -21,14 +22,14 @@ logger.info("Loading sentence transformer model...")
 model = SentenceTransformer('all-MiniLM-L6-v2')
 logger.info("Model loaded successfully")
 
+ENV_CONFIG = get_environment_config()
+
 def get_qdrant_client():
     """
     Initialize Qdrant client based on environment
     Returns:
         client: QdrantClient instance
     """
-    from backend.api import ENV_CONFIG
-    
     if ENV_CONFIG['debug_mode']:
         # Use local Qdrant instance in debug mode
         logger.info("Initializing local Qdrant instance (Debug mode)")
