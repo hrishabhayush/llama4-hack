@@ -9,6 +9,7 @@ cytoscape.use(coseBilkent);
 interface NodeData {
   id: string;
   label: string;
+  important?: boolean;
 }
 
 interface EdgeData {
@@ -32,21 +33,45 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
     const cy = cytoscape({
       container: cyRef.current,
       elements: [
-        ...nodes.map(n => ({ data: { id: n.id, label: n.label } })),
+        ...nodes.map(n => ({ 
+          data: { 
+            id: n.id, 
+            label: n.label, 
+            important: n.important || false 
+          },
+          classes: n.important ? 'important-node' : 'regular-node'
+        })),
         ...edges.map(e => ({ data: { source: e.source, target: e.target, weight: e.weight } })),
       ],
       style: [
         {
-          selector: 'node',
+          selector: '.important-node',
           style: {
             label: 'data(label)',
             'background-color': '#000000',
             'color': '#ffffff',
-            'text-outline-color': 'black',
+            'text-outline-color': '#000000',
             'text-outline-width': 1,
-            'font-size': 11,
+            'font-size': 12,
+            'width': 30,
+            'height': 30,
+            'text-valign': 'center',
+            'text-halign': 'center',
+          },
+        },
+        {
+          selector: '.regular-node',
+          style: {
+            'background-color': '#000000',
+            'color': '#ffffff', 
+            'text-outline-color': '#000000',
+            'text-outline-width': 1,
+            'font-size': 8,
             'width': 10,
             'height': 10,
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'label': '', // Initially no label
           },
         },
         {
@@ -60,7 +85,24 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
       ],
       layout: {
         name: 'cose-bilkent',
-      },
+        fit: true,
+        padding: 30,
+        animate: 'end',
+        animationDuration: 1000,
+      } as any,
+    });
+
+    // Handle zoom-based label visibility
+    cy.on('zoom', () => {
+      const zoomLevel = cy.zoom();
+      console.log('Zoom level:', zoomLevel); // Debug log
+      
+      // Show labels for regular nodes when zoomed in (zoom > 1.5)
+      if (zoomLevel > 1.5) {
+        cy.$('.regular-node').style('label', 'data(label)');
+      } else {
+        cy.$('.regular-node').style('label', '');
+      }
     });
 
     cy.on('tap', 'node', (evt) => {
