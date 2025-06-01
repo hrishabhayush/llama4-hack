@@ -29,6 +29,15 @@ export function Right() {
 
   const [selectedRole, setSelectedRole] = useState("Agent");
 
+  // Handler for image upload
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // You can handle the file here (e.g., upload, preview, etc.)
+      console.log("Selected image:", file);
+    }
+  };
+
     return (
         <ResizablePanel defaultSize={35} minSize={10} maxSize={40}>
           <div className="h-full flex flex-col justify-end p-6 bg-white">
@@ -59,8 +68,11 @@ export function Right() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <div className="flex items-center gap-2 ml-auto">
-                  {/* Image upload button (icon placeholder) */}
-                  <Image />
+                  {/* Image upload button */}
+                  <label className="cursor-pointer">
+                    <Image />
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  </label>
                   {/* Send button (icon placeholder) */}
                   <SendHorizonal />
                 </div>
