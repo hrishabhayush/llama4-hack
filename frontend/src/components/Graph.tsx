@@ -48,7 +48,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
           selector: '.important-node',
           style: {
             label: 'data(label)',
-            'background-color': '#000000',
+            'background-color': '#0E3386',
             'color': '#ffffff',
             'text-outline-color': '#000000',
             'text-outline-width': 1,
@@ -62,7 +62,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
         {
           selector: '.regular-node',
           style: {
-            'background-color': '#000000',
+            'background-color': '#0E3386',
             'color': '#ffffff', 
             'text-outline-color': '#000000',
             'text-outline-width': 1,
