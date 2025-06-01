@@ -5,3 +5,8 @@ Welcome to the Llama On Fly project! This project is part of Meta's Llama Hackat
 ## Project Overview
 
 Llama on Fly aims to revolutionize the way we interact with text and writing tools. By leveraging cutting-edge technology, we strive to enhance the writing experience, making it more intuitive and efficient.
+
+## Features
+- Intuitive text editing
+- Bubble Map to for aided creation of novel ideas
+- Implementation of Meta's Llama API
