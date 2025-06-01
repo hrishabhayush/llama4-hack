@@ -6,12 +6,42 @@ import {
   } from "@/components/ui/accordion";
   import { useFileContext } from "../FileContext";
 
+async function uploadPDF(file: File): Promise<boolean> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('http://localhost:8000/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    await res.json();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function First() {
     const { openFile } = useFileContext();
     return (
         <AccordionItem value="LLAMA4-HACK">
             <AccordionTrigger className="text-xs py-1 min-h-0 font-bold tracking-wide">LLAMA4-HACK</AccordionTrigger>
             <AccordionContent className="pl-2">
+              <div className="mb-2">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const success = await uploadPDF(file);
+                      alert(success ? 'Upload successful!' : 'Upload failed!');
+                    }
+                  }}
+                />
+              </div>
               <Accordion type="multiple" className="w-full" defaultValue={["frontend", "src", "components"]}>
                 {/* Frontend folder */}
                 <AccordionItem value="frontend">
