@@ -6,7 +6,7 @@ from backend.utils.vectorize import create_vector_db, find_similar_idea
 from backend.utils.LLMRequest import LLMRequest
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -19,6 +19,13 @@ app.add_middleware(
     )
 
 UPLOAD_DIR = "backend/files"
+
+@app.get("/api/uploaded-files")
+async def list_uploaded_files():
+    files = []
+    if os.path.exists(UPLOAD_DIR):
+        files = [f for f in os.listdir(UPLOAD_DIR) if f.lower().endswith('.pdf')]
+    return JSONResponse(content={"files": files})
 
 @app.post("/api/upload")
 async def upload_pdf(file: UploadFile = File(...)):
