@@ -2,11 +2,16 @@
 import os
 from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
-from backend.utils.vectorize import create_vector_db, find_similar_idea
+from backend.utils.vectorize import create_vector_db, find_similar_idea_from_embedding
 from backend.utils.LLMRequest import LLMRequest
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, Response
+from backend.algo.core import cluster_ideas, get_cluster_summaries
+
+# Initialize environment once at startup
+check_environment()
+ENV_CONFIG = get_environment_config()
 
 app = FastAPI()
 
@@ -70,13 +75,14 @@ def generate(source_dir: str, prompt: str, debug = None):
     # create a vector database
     client = create_vector_db(ideas)
     
-    # find similar ideas to the prompt
-    # TODO: we use k-means cluster to find 
-    # "clouds" of ideas and present these as input to LLM
-    similar_ideas = find_similar_idea(client, prompt, limit=3)
+    # Run k-means clustering on all ideas
+    clusters, centroids = cluster_ideas(ideas)
     
-    # Create a mapping of ideas for easier lookup
-    idea_map = {idea.quotation_id: idea for idea in ideas}
+    # Find similar ideas for each cluster centroid
+    similar_ideas = []
+    for centroid in centroids:
+        cluster_similar_ideas = find_similar_idea_from_embedding(client, centroid.tolist(), limit=3)
+        similar_ideas.extend(cluster_similar_ideas)
     
     # Print similar ideas and their quotations
     print("\nSimilar Ideas and Quotations:")
@@ -122,6 +128,8 @@ Please provide a detailed response that:
 2. Uses specific evidence from the provided quotations
 3. Synthesizes the main points into a coherent argument in paragraphs, not bullet points
 4. Maintains academic rigor and precision
+5. Cite the sources for each direct quotation.
+6. Use a wide range of sources to develop a nuanced and comprehensive answer.
 
 Write your response as a well-structured paragraph that:
 - Begins with a clear thesis statement
