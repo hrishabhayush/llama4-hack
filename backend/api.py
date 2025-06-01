@@ -40,7 +40,9 @@ def edit_response():
     pass 
 
 @app.post("/api/generate")
-def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG").lower() == "true"):
+def generate(source_dir: str, prompt: str, debug = None):
+    # Use the global environment config instead of checking again
+    debug = ENV_CONFIG['debug_mode'] if debug is None else debug
     # process the pdfs
     preprocessor = Preprocessor()
     # create list of pdfs from the source_dir
@@ -59,32 +61,54 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG").lowe
 
     # create a chunk object
     chunk_obj = Chunk(sources, "Quentin Kniep")
-    ideas = []
-    for chunk_dict in chunks:
-        # Extend the ideas list with the list returned by chunk_to_idea
-        ideas.extend(chunk_obj.chunk_to_idea(chunk_dict, debug=debug))
+    
+    # Process all chunks concurrently
+    print("\nProcessing chunks with concurrent LLM inference...")
+    ideas = chunk_obj.chunk_to_idea(chunks, debug=debug)
     
     # create a vector database
     client = create_vector_db(ideas)
     
     # find similar ideas to the prompt
+    # TODO: we use k-means cluster to find 
+    # "clouds" of ideas and present these as input to LLM
     similar_ideas = find_similar_idea(client, prompt, limit=3)
     
-    # match quotation with ideas
-    for idea in ideas:
-        for similar_idea in similar_ideas:
-            if idea.quotation_id == similar_idea['quotation_id']:
-                similar_idea['quotation'] = chunk_obj.quotation[idea.quotation_id]
+    # Create a mapping of ideas for easier lookup
+    idea_map = {idea.quotation_id: idea for idea in ideas}
     
     # Print similar ideas and their quotations
     print("\nSimilar Ideas and Quotations:")
-    for idea in similar_ideas:
-        print(f"\nMain Point: {idea['main_point']}")
-        print(f"Quotation: {idea['quotation']}")
-        print(f"Similarity Score: {idea['similarity_score']}")
+    formatted_ideas = []
+    for similar_idea in similar_ideas:
+        quotation_id = similar_idea.get('quotation_id')
+        chunk_id = similar_idea.get('chunk_id')
+        
+        # Get the source information based on chunk_id
+        source_index = chunk_id - 1  # Since chunk_id starts from 1
+        source_title = sources[source_index] if 0 <= source_index < len(sources) else "Unknown"
+        
+        if quotation_id and quotation_id in chunk_obj.quotation:
+            quotation = chunk_obj.quotation[quotation_id]
+            print(f"\nMain Point: {similar_idea['main_point']}")
+            print(f"Quotation: {quotation}")
+            print(f"Source: {source_title}")
+            print(f"Author: {chunk_obj.author}")
+            print(f"Similarity Score: {similar_idea['similarity_score']}")
+            formatted_ideas.append({
+                'main_point': similar_idea['main_point'],
+                'quotation': quotation,
+                'title': source_title,
+                'author': chunk_obj.author,
+                'chunk_id': chunk_id
+            })
     
     # format the response using Llama
-    context = "\n".join([f"Main point: {idea['main_point']}\nQuotation: {idea['quotation']}" for idea in similar_ideas])
+    context = "\n".join([
+        f"Main point: {idea['main_point']}\nQuotation: {idea['quotation']}\nSource: {idea['title']}\nAuthor: {idea['author']}" 
+        for idea in formatted_ideas
+    ])
+    
     llama_prompt = f"""You are an expert research assistant. Using the following context from academic sources, provide a comprehensive answer to the user's question.
 
 User's question: {prompt}
