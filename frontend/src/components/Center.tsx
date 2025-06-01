@@ -4,6 +4,10 @@ import { useFileContext } from "./FileContext";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ResizablePanel } from "@/components/ui/resizable";
 import Graph from "./Graph";
+import { Document, Page, pdfjs } from 'react-pdf';
+
+// Use the worker from the pdfjs-dist package in node_modules
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
 export function Center() {
   const { openFiles, activeFile, setActiveFileByName, closeFile, updateFileContent } = useFileContext();
