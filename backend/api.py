@@ -39,7 +39,8 @@ async def upload_pdf(file: UploadFile = File(...)):
 def edit_response():
     pass 
 
-def generate(source_dir, prompt, debug=os.getenv("DEBUG").lower() == "true"):
+@app.post("/api/generate")
+def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG").lower() == "true"):
     # process the pdfs
     preprocessor = Preprocessor()
     # create list of pdfs from the source_dir
