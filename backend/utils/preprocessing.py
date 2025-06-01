@@ -12,8 +12,9 @@ from enum import Enum
 from dataclasses import dataclass
 from .db_log import setup_logger
 from tqdm import tqdm
-
+from dotenv import load_dotenv
 # Get logger for this module
+load_dotenv()
 logger = setup_logger(__name__)
 
 class Environment(Enum):
@@ -34,9 +35,12 @@ class Preprocessor:
         # Initialize logging
         self.logger = logger
         
-        # Define chunking parameters
-        self.min_chunk_size = 100
-        self.max_chunk_size = 2000
+        # Define chunking parameters from environment variables
+        print(f"Reading MIN_CHUNK from env: {os.getenv('MIN_CHUNK')}")
+        print(f"Reading MAX_CHUNK from env: {os.getenv('MAX_CHUNK')}")
+        
+        self.min_chunk_size = int(os.getenv('MIN_CHUNK'))
+        self.max_chunk_size = int(os.getenv('MAX_CHUNK'))
         
         # Define section break patterns
         self.section_breaks = [

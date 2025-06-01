@@ -67,6 +67,14 @@ def _validate_url(value: str) -> bool:
     """Validate URL format"""
     return value.startswith(('http://', 'https://'))
 
+def _validate_chunk_size(value: str) -> bool:
+    """Validate chunk size value"""
+    try:
+        size = int(value)
+        return size > 0
+    except ValueError:
+        return False
+
 def check_environment() -> None:
     """
     Check if all required environment variables are set and valid.
@@ -134,6 +142,16 @@ def check_environment() -> None:
             'required': False,
             'validator': _validate_log_level,
             'error_msg': "LOG_LEVEL must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL"
+        },
+        'MIN_CHUNK': {
+            'required': True,
+            'validator': _validate_chunk_size,
+            'error_msg': "MIN_CHUNK must be a positive integer"
+        },
+        'MAX_CHUNK': {
+            'required': True,
+            'validator': lambda x: _validate_chunk_size(x) and int(x) > int(os.getenv('MIN_CHUNK', '0')),
+            'error_msg': "MAX_CHUNK must be a positive integer greater than MIN_CHUNK"
         }
     }
     
