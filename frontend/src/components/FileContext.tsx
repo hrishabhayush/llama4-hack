@@ -108,7 +108,47 @@ export function FileProvider({ children }: { children: ReactNode }) {
 
   // Open a file (add to openFiles if not present, set as active)
   const openFile = (fileName: string) => {
-    const file = initialFiles.find((f) => f.name === fileName);
+    let file = initialFiles.find((f) => f.name === fileName);
+    // Special case for bubble-map.json
+    if (!file && fileName === "bubble-map.json") {
+      // Fetch from backend
+      fetch("http://localhost:8000/files/bubble-map.json")
+        .then(res => res.json())
+        .then(data => {
+          const bubbleMapFile = {
+            name: "bubble-map.json",
+            path: "backend/files/bubble-map.json",
+            content: JSON.stringify(data, null, 2),
+            type: "graph" as const
+          };
+          setOpenFiles((prev) => {
+            if (prev.find((f) => f.name === fileName)) return prev;
+            return [...prev, bubbleMapFile];
+          });
+          setActiveFile(bubbleMapFile);
+        });
+      return;
+    }
+    // Special case for outline.txt
+    if (!file && fileName === "outline.txt") {
+      // Fetch from backend
+      fetch("http://localhost:8000/files/outline.txt")
+        .then(res => res.text())
+        .then(data => {
+          const outlineFile = {
+            name: "outline.txt",
+            path: "outline.txt",
+            content: data,
+            type: "text" as const
+          };
+          setOpenFiles((prev) => {
+            if (prev.find((f) => f.name === fileName)) return prev;
+            return [...prev, outlineFile];
+          });
+          setActiveFile(outlineFile);
+        });
+      return;
+    }
     if (!file) return;
     setOpenFiles((prev) => {
       if (prev.find((f) => f.name === fileName)) return prev;
@@ -143,6 +183,14 @@ export function FileProvider({ children }: { children: ReactNode }) {
     );
     if (activeFile && activeFile.name === fileName) {
       setActiveFile({ ...activeFile, content: newContent });
+    }
+    // Persist outline.txt edits to backend
+    if (fileName === "outline.txt") {
+      fetch("http://localhost:8000/files/outline.txt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent })
+      });
     }
   };
 

@@ -4,7 +4,7 @@ from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
 from backend.utils.vectorize import create_vector_db, find_similar_idea_from_embedding
 from backend.utils.LLMRequest import LLMRequest
-from fastapi import FastAPI, UploadFile, File, Request
+from fastapi import FastAPI, UploadFile, File, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, Response
 from backend.utils.env_checker import get_environment_config
@@ -12,6 +12,7 @@ from backend.utils.db_log import setup_logger
 from backend.algo.core import cluster_ideas, get_cluster_summaries
 from backend.utils.env_checker import check_environment
 from backend.utils.env_checker import check_environment
+from pydantic import BaseModel
 
 # Initialize environment once at startup
 check_environment()
@@ -82,6 +83,7 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
     client = create_vector_db(ideas)
     
     # Run k-means clustering on all ideas
+    # nodes for the bubble map
     clusters, centroids = cluster_ideas(ideas, client)
     
     # Find similar ideas for each cluster centroid
@@ -89,17 +91,6 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
     for centroid in centroids:
         cluster_similar_ideas = find_similar_idea_from_embedding(client, centroid.tolist(), limit=3)
         similar_ideas.extend(cluster_similar_ideas)
-    
-    # match quotation with ideas
-    for idea in ideas:
-        for similar_idea in similar_ideas:
-            if idea.quotation_id == similar_idea['quotation_id']:
-                similar_idea['quotation'] = chunk_obj.quotation[idea.quotation_id]
-
-    # Ensure all similar_ideas have a 'quotation' key
-    for idea in similar_ideas:
-        if 'quotation' not in idea:
-            idea['quotation'] = 'N/A'
 
     # Print similar ideas and their quotations
     print("\nSimilar Ideas and Quotations:")
@@ -109,6 +100,37 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
         print(f"Quotation: {quotation}")
         print(f"Similarity Score: {idea['similarity_score']}")
     
+    # Build bubble map nodes
+    bubble_map_nodes = [
+        {
+            "id": str(idea["quotation_id"]),
+            "label": idea["main_point"],
+            "important": float(idea.get("similarity_score", 0)) > 0.8,
+            "size": float(idea.get("similarity_score", 1)) * 20,
+            "quotation": chunk_obj.quotation.get(idea["quotation_id"], "Quotation not found"),
+            "similarity_score": idea.get("similarity_score", 0)
+        }
+        for idea in similar_ideas
+    ]
+    # For demo: connect all nodes in sequence (or you can use real similarity/cluster info)
+    bubble_map_edges = []
+    for i in range(len(bubble_map_nodes) - 1):
+        bubble_map_edges.append({
+            "source": bubble_map_nodes[i]["id"],
+            "target": bubble_map_nodes[i+1]["id"],
+            "weight": (bubble_map_nodes[i]["similarity_score"] + bubble_map_nodes[i+1]["similarity_score"]) / 2
+        })
+    bubble_map = {
+        "nodes": bubble_map_nodes,
+        "edges": bubble_map_edges
+    }
+
+    # Save bubble map to file for frontend access
+    import json
+    bubble_map_path = os.path.join(UPLOAD_DIR, "bubble-map.json")
+    with open(bubble_map_path, "w") as f:
+        json.dump(bubble_map, f)
+
     # format the response using Llama
     context = "\n".join([
         f"Main point: {idea['main_point']}\nQuotation: {chunk_obj.quotation.get(idea['quotation_id'], 'Quotation not found')}" 
@@ -141,7 +163,7 @@ Your response should be approximately 10 pages long."""
     # get response from Llama
     response = LLMRequest.inference(llama_prompt, debug=debug)
     logger.info(f"Response: {response}")
-    return response
+    return {"response": response, "bubble_map": bubble_map}
 
     
     # embeddings = vectorize(chunks)
@@ -169,5 +191,15 @@ async def generate_endpoint(request: Request):
     source_dir = data.get("source_dir", "backend/files")
     response = generate(source_dir=source_dir, prompt=prompt)
     return {"response": response}
+
+class OutlineContent(BaseModel):
+    content: str
+
+@app.post("/files/outline.txt")
+async def save_outline_txt(data: OutlineContent):
+    file_path = os.path.join(UPLOAD_DIR, "outline.txt")
+    with open(file_path, "w") as f:
+        f.write(data.content)
+    return {"status": "success"}
 
 

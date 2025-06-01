@@ -27,13 +27,17 @@ interface GraphProps {
 const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
   const cyRef = useRef<HTMLDivElement>(null);
 
+  // Defensive: default to empty arrays if undefined
+  const safeNodes = Array.isArray(nodes) ? nodes : [];
+  const safeEdges = Array.isArray(edges) ? edges : [];
+
   useEffect(() => {
     if (!cyRef.current) return;
 
     const cy = cytoscape({
       container: cyRef.current,
       elements: [
-        ...nodes.map(n => ({ 
+        ...safeNodes.map(n => ({ 
           data: { 
             id: n.id, 
             label: n.label, 
@@ -41,7 +45,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
           },
           classes: n.important ? 'important-node' : 'regular-node'
         })),
-        ...edges.map(e => ({ data: { source: e.source, target: e.target, weight: e.weight } })),
+        ...safeEdges.map(e => ({ data: { source: e.source, target: e.target, weight: e.weight } })),
       ],
       style: [
         {
@@ -124,7 +128,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onNodeClick }) => {
     });
 
     return () => cy.destroy();
-  }, [nodes, edges]);
+  }, [safeNodes, safeEdges]);
 
   return <div ref={cyRef} style={{ width: '100%', height: '100%' }} />;
 };

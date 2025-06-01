@@ -78,6 +78,14 @@ export function Right() {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
+      // Save latest assistant message to backend for outline.txt
+      try {
+        await fetch('http://localhost:8000/files/outline.txt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: assistantMessage.content })
+        });
+      } catch (e) {}
     } catch (err) {
       setMessages(prev => [
         ...prev,
