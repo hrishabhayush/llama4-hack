@@ -57,20 +57,30 @@ def generate(source_dir, prompt, debug=None):
     formatted_ideas = []
     for similar_idea in similar_ideas:
         quotation_id = similar_idea.get('quotation_id')
+        chunk_id = similar_idea.get('chunk_id')
+        
+        # Get the source information based on chunk_id
+        source_index = chunk_id - 1  # Since chunk_id starts from 1
+        source_title = sources[source_index] if 0 <= source_index < len(sources) else "Unknown"
+        
         if quotation_id and quotation_id in chunk_obj.quotation:
             quotation = chunk_obj.quotation[quotation_id]
             print(f"\nMain Point: {similar_idea['main_point']}")
             print(f"Quotation: {quotation}")
+            print(f"Source: {source_title}")
+            print(f"Author: {chunk_obj.author}")
             print(f"Similarity Score: {similar_idea['similarity_score']}")
             formatted_ideas.append({
                 'main_point': similar_idea['main_point'],
                 'quotation': quotation,
-                'similarity_score': similar_idea['similarity_score']
+                'title': source_title,
+                'author': chunk_obj.author,
+                'chunk_id': chunk_id
             })
     
     # format the response using Llama
     context = "\n".join([
-        f"Main point: {idea['main_point']}\nQuotation: {idea['quotation']}\nSimilarity Score: {idea['similarity_score']}" 
+        f"Main point: {idea['main_point']}\nQuotation: {idea['quotation']}\nSource: {idea['title']}\nAuthor: {idea['author']}" 
         for idea in formatted_ideas
     ])
     

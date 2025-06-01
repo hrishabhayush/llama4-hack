@@ -31,6 +31,7 @@ class Chunk:
         self.quotation = {}
         # Use MAX_WORKERS_PER_CHUNK from environment variables
         self._max_workers = int(os.getenv('MAX_WORKERS_PER_CHUNK', '10'))
+        # TODO: we should try to take in page numbers for better citations.
     
     def chunk_id_generator(self):
         Chunk._instance_count += 1

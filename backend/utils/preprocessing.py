@@ -165,11 +165,12 @@ class Preprocessor:
         # Flatten and prepare for processing
         text_with_sources = []
         for source_idx, pages in enumerate(pdf_contents):
-            for page_idx, text in enumerate(pages):
-                if text.strip():
+            for page_idx, page in enumerate(pages):
+                if page['text'].strip():
                     text_with_sources.append({
-                        'text': text,
+                        'text': page['text'],
                         'source': sources[source_idx],
+                        'title': page['title'],
                         'page': page_idx
                     })
         
@@ -257,6 +258,16 @@ class Preprocessor:
         text = []
         try:
             reader = PdfReader(source)
+            # Try to get title from PDF metadata, otherwise clean up filename
+            title = None
+            if reader.metadata and reader.metadata.get('/Title'):
+                title = reader.metadata.get('/Title')
+            if not title:
+                # Remove directory path and .pdf extension
+                title = os.path.basename(source)
+                if title.lower().endswith('.pdf'):
+                    title = title[:-4]  # Remove .pdf extension
+            
             # Extract text from all pages
             for page in tqdm(
                 reader.pages,
@@ -264,9 +275,14 @@ class Preprocessor:
                 leave=False,
                 unit="page"
             ):
-                text.append(page.extract_text())
+                text.append({'text': page.extract_text(), 'title': title})
         except Exception as e:
             self.logger.error(f"Error processing PDF {source}: {str(e)}")
+            # Even if there's an error, return with cleaned up filename as title
+            title = os.path.basename(source)
+            if title.lower().endswith('.pdf'):
+                title = title[:-4]
+            text = [{'text': '', 'title': title}]
         return text
 
     def _process_single_text(self, text_info: dict) -> List[Dict]:
