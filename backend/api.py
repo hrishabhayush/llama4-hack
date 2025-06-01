@@ -4,20 +4,45 @@ from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
 from backend.utils.vectorize import create_vector_db, find_similar_idea
 from backend.utils.LLMRequest import LLMRequest
-from backend.utils.env_checker import check_environment, get_environment_config
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-# Initialize environment once at startup
-check_environment()
-ENV_CONFIG = get_environment_config()
+app = FastAPI()
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Or your frontend URL
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+UPLOAD_DIR = "backend/files"
+
+@app.get("/api/uploaded-files")
+async def list_uploaded_files():
+    files = []
+    if os.path.exists(UPLOAD_DIR):
+        files = [f for f in os.listdir(UPLOAD_DIR) if f.lower().endswith('.pdf')]
+    return JSONResponse(content={"files": files})
+
+@app.post("/api/upload")
+async def upload_pdf(file: UploadFile = File(...)):
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+    return {"status": "success", "filename": file.filename}
 
 # if user doesn't like the response, they can edit it
 def edit_response():
     pass 
 
-def generate(source_dir, prompt, debug=None):
+@app.post("/api/generate")
+def generate(source_dir: str, prompt: str, debug = None):
     # Use the global environment config instead of checking again
     debug = ENV_CONFIG['debug_mode'] if debug is None else debug
-    
     # process the pdfs
     preprocessor = Preprocessor()
     # create list of pdfs from the source_dir
