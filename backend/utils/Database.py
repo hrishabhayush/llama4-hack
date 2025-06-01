@@ -1,7 +1,8 @@
 #Class for an idea
 import json
-from .llama import Llama
+from .LLMRequest import LLMRequest
 import re
+import os
 
 class Idea:
     def __init__(self, point, chunk_id, quotation_id):
@@ -40,7 +41,7 @@ class Chunk:
         # Remove all control characters except \n and \t
         return re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', text)
     
-    def chunk_to_idea(self,chunk):
+    def chunk_to_idea(self,chunk, debug=os.getenv("DEBUG").lower() == "true"):
         '''
         This function takes a json object with a "text" field, return a list of idea objects
         '''
@@ -62,7 +63,7 @@ Ensure each point is clear and each quotation directly supports its point.
 Do not include any other text in your response outside of the JSON array.
 Do not consider any references or citations."""
         
-        response_data = Llama.inference(prompt)
+        response_data = LLMRequest.inference(prompt, debug=debug)
 
         #print("Raw LLM Response: \n\n\n", response_data)  # Debug print
         

@@ -3,13 +3,13 @@ import os
 from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
 from backend.utils.vectorize import create_vector_db, find_similar_idea
-from backend.utils.llama import Llama
+from backend.utils.LLMRequest import LLMRequest
 
 # if user doesn't like the response, they can edit it
 def edit_response():
     pass 
 
-def generate(source_dir, prompt):
+def generate(source_dir, prompt, debug=os.getenv("DEBUG").lower() == "true"):
     # process the pdfs
     preprocessor = Preprocessor()
     # create list of pdfs from the source_dir
@@ -17,9 +17,11 @@ def generate(source_dir, prompt):
     ___sources = os.listdir(source_dir)
     sources = []
     for source in ___sources:
-        sources.append(os.path.join(source_dir, source))
+        # Skip hidden files and non-PDF files
+        if not source.startswith('.') and source.lower().endswith('.pdf'):
+            sources.append(os.path.join(source_dir, source))
 
-    print(sources)
+    print("Processing PDF files:", sources)
     print()
     pdf_texts = preprocessor.process_pdfs(sources)
     chunks = preprocessor.text_to_chunks(pdf_texts)
@@ -29,7 +31,7 @@ def generate(source_dir, prompt):
     ideas = []
     for chunk_dict in chunks:
         # Extend the ideas list with the list returned by chunk_to_idea
-        ideas.extend(chunk_obj.chunk_to_idea(chunk_dict))
+        ideas.extend(chunk_obj.chunk_to_idea(chunk_dict, debug=debug))
     
     # create a vector database
     client = create_vector_db(ideas)
@@ -62,7 +64,7 @@ Relevant context from sources:
 Please provide a detailed response that:
 1. Directly addresses the user's question
 2. Uses specific evidence from the provided quotations
-3. Synthesizes the main points into a coherent argument
+3. Synthesizes the main points into a coherent argument in paragraphs, not bullet points
 4. Maintains academic rigor and precision
 
 Write your response as a well-structured paragraph that:
@@ -72,10 +74,10 @@ Write your response as a well-structured paragraph that:
 - Concludes with a synthesis of the key points
 - Maintains a formal, academic tone throughout
 
-Your response should be approximately 1-2 paragraphs long."""
+Your response should be approximately 10 pages long."""
 
     # get response from Llama
-    response = Llama.inference(llama_prompt)
+    response = LLMRequest.inference(llama_prompt, debug=debug)
     
     return response
 
