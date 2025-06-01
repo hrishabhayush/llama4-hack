@@ -2,14 +2,31 @@
 import os
 from dotenv import load_dotenv
 import json
+import requests
+from datetime import datetime
+from threading import Lock
+from .db_log import setup_logger
 
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Get logger for this module
+logger = setup_logger(__name__)
+
 
 class LLMRequest:
     client = None
+    # Class-level atomic counter with thread-safe lock
+    _call_counter = 0
+    _counter_lock = Lock()
+
+    @classmethod
+    def _increment_counter(cls):
+        """Thread-safe increment of the API call counter"""
+        with cls._counter_lock:
+            cls._call_counter += 1
+            return cls._call_counter
 
     @classmethod
     def initialize_client(cls):
@@ -28,10 +45,24 @@ class LLMRequest:
             cls.client = Cerebras(api_key=api_key)
 
     @classmethod
-    def inference(cls, prompt, debug=os.getenv("DEBUG").lower() == "true"):
-        if cls.client is None:
-            cls.initialize_client()
+    def inference(cls, prompt, debug=False):
+        # Get current timestamp and increment counter atomically
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        call_number = cls._increment_counter()
+        
+        # Log the API call
+        logger.info(f"LLM API Call #{call_number} at {timestamp}")
+        logger.debug(f"Prompt: {prompt[:200]}...")  # Log first 200 chars of prompt
+        
         try:
+            if debug:
+                # In debug mode, return a mock response
+                logger.info(f"Debug mode - LLM call #{call_number} completed")
+                return "This is a debug response."
+            
+            if cls.client is None:
+                cls.initialize_client()
+            
             # Extract the content from the response
             if cls.__LLM_MODEL == "llama":
                 response = cls.client.chat.completions.create(
@@ -92,5 +123,6 @@ class LLMRequest:
                     print("Warning: Unexpected response format")
                     return str(response)
         except Exception as e:
-            print(f"Error in inference: {str(e)}")
-            return None
+            error_msg = f"Error in inference: {str(e)}"
+            logger.error(f"LLM API Call #{call_number} failed: {error_msg}")
+            return error_msg
