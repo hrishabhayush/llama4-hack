@@ -75,6 +75,14 @@ def _validate_chunk_size(value: str) -> bool:
     except ValueError:
         return False
 
+def _validate_cluster_count(value: str) -> bool:
+    """Validate cluster count value"""
+    try:
+        count = int(value)
+        return count > 1  # Clustering requires at least 2 clusters
+    except ValueError:
+        return False
+
 def check_environment() -> None:
     """
     Check if all required environment variables are set and valid.
@@ -157,6 +165,11 @@ def check_environment() -> None:
             'required': True,
             'validator': _validate_chunk_size,
             'error_msg': "MAX_WORKERS_PER_CHUNK must be a positive integer"
+        },
+        'K_MEANS_CLUSTERS': {
+            'required': True,
+            'validator': _validate_cluster_count,
+            'error_msg': "K_MEANS_CLUSTERS must be an integer greater than 1"
         }
     }
     

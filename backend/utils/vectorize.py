@@ -30,7 +30,9 @@ def get_qdrant_client():
     Returns:
         client: QdrantClient instance
     """
-    if ENV_CONFIG['debug_mode']:
+    from backend.api import ENV_CONFIG
+    
+    if True:#ENV_CONFIG['debug_mode']:
         # Use local Qdrant instance in debug mode
         logger.info("Initializing local Qdrant instance (Debug mode)")
         client = QdrantClient(path="./qdrant_data")
@@ -110,6 +112,49 @@ def create_vector_db(sources: List[Idea], collection_name: str = "ideas") -> Qdr
     logger.info("Vector database creation completed successfully")
     return client
 
+def find_similar_idea_from_embedding(client: QdrantClient, 
+                               embedding: List[float], 
+                               collection_name: str = "ideas", 
+                               limit: int = 1) -> List[dict]:
+    """
+    Find the most similar ideas to a given embedding vector.
+    
+    Args:
+        client: QdrantClient instance
+        embedding: Pre-computed embedding vector
+        collection_name: Name of the collection to search in
+        limit: Number of results to return
+        
+    Returns:
+        List of dictionaries containing the similar ideas and their metadata
+    """
+    logger.info("Searching for ideas similar to provided embedding...")
+    
+    # Search for similar vectors
+    logger.debug(f"Querying collection '{collection_name}' for {limit} similar ideas")
+    with tqdm(total=1, desc="Searching vector DB", leave=False) as pbar:
+        search_result = client.search(
+            collection_name=collection_name,
+            query_vector=embedding,
+            limit=limit
+        )
+        pbar.update(1)
+    
+    # Format results
+    results = []
+    for hit in search_result:
+        results.append({
+            "main_point": hit.payload["main_point"],
+            "chunk_id": hit.payload["chunk_id"],
+            "quotation_id": hit.payload["quotation_id"],
+            "similarity_score": hit.score
+        })
+    
+    logger.info(f"Found {len(results)} similar ideas")
+    logger.debug(f"Search results: {results}")
+    
+    return results
+
 def find_similar_idea(client: QdrantClient, prompt: str, collection_name: str = "ideas", limit: int = 1) -> List[dict]:
     """
     Find the most similar ideas to a given prompt.
@@ -130,27 +175,10 @@ def find_similar_idea(client: QdrantClient, prompt: str, collection_name: str = 
         prompt_embedding = get_embedding(prompt)
         pbar.update(1)
     
-    # Search for similar vectors
-    logger.debug(f"Querying collection '{collection_name}' for {limit} similar ideas")
-    with tqdm(total=1, desc="Searching vector DB", leave=False) as pbar:
-        search_result = client.search(
-            collection_name=collection_name,
-            query_vector=prompt_embedding,
-            limit=limit
-        )
-        pbar.update(1)
-    
-    # Format results
-    results = []
-    for hit in search_result:
-        results.append({
-            "main_point": hit.payload["main_point"],
-            "chunk_id": hit.payload["chunk_id"],
-            "quotation_id": hit.payload["quotation_id"],
-            "similarity_score": hit.score
-        })
-    
-    logger.info(f"Found {len(results)} similar ideas")
-    logger.debug(f"Search results: {results}")
-    
-    return results
+    # Use the embedding-based search function
+    return find_similar_idea_from_embedding(
+        client=client,
+        embedding=prompt_embedding,
+        collection_name=collection_name,
+        limit=limit
+    )

@@ -2,13 +2,18 @@
 import os
 from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
-from backend.utils.vectorize import create_vector_db, find_similar_idea
+from backend.utils.vectorize import create_vector_db, find_similar_idea_from_embedding
 from backend.utils.LLMRequest import LLMRequest
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, Response
 from backend.utils.env_checker import get_environment_config
 from backend.utils.db_log import setup_logger
+from backend.algo.core import cluster_ideas, get_cluster_summaries
+
+# Initialize environment once at startup
+check_environment()
+ENV_CONFIG = get_environment_config()
 
 app = FastAPI()
 
@@ -46,6 +51,8 @@ def edit_response():
     pass 
 
 def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "true").lower() == "true"):
+    # Use the global environment config instead of checking again
+    debug = ENV_CONFIG['debug_mode'] if debug is None else debug
     # process the pdfs
     preprocessor = Preprocessor()
     # create list of pdfs from the source_dir
@@ -72,14 +79,14 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
     # create a vector database
     client = create_vector_db(ideas)
     
-    # find similar ideas to the prompt
-    similar_ideas = find_similar_idea(client, prompt, limit=3)
+    # Run k-means clustering on all ideas
+    clusters, centroids = cluster_ideas(ideas)
     
-    # match quotation with ideas
-    for idea in ideas:
-        for similar_idea in similar_ideas:
-            if idea.quotation_id == similar_idea['quotation_id']:
-                similar_idea['quotation'] = chunk_obj.quotation[idea.quotation_id]
+    # Find similar ideas for each cluster centroid
+    similar_ideas = []
+    for centroid in centroids:
+        cluster_similar_ideas = find_similar_idea_from_embedding(client, centroid.tolist(), limit=3)
+        similar_ideas.extend(cluster_similar_ideas)
     
     # Print similar ideas and their quotations
     print("\nSimilar Ideas and Quotations:")
@@ -102,6 +109,8 @@ Please provide a detailed response that:
 2. Uses specific evidence from the provided quotations
 3. Synthesizes the main points into a coherent argument in paragraphs, not bullet points
 4. Maintains academic rigor and precision
+5. Cite the sources for each direct quotation.
+6. Use a wide range of sources to develop a nuanced and comprehensive answer.
 
 Write your response as a well-structured paragraph that:
 - Begins with a clear thesis statement
