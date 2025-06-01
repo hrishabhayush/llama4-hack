@@ -9,9 +9,18 @@ from backend.utils.llama import Llama
 def edit_response():
     pass 
 
-def generate(sources, prompt):
+def generate(source_dir, prompt):
     # process the pdfs
     preprocessor = Preprocessor()
+    # create list of pdfs from the source_dir
+    print (f"Source directory: {source_dir}")
+    ___sources = os.listdir(source_dir)
+    sources = []
+    for source in ___sources:
+        sources.append(os.path.join(source_dir, source))
+
+    print(sources)
+    print()
     pdf_texts = preprocessor.process_pdfs(sources)
     chunks = preprocessor.text_to_chunks(pdf_texts)
 

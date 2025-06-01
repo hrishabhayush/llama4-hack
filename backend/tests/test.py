@@ -1,7 +1,7 @@
 import os
 import sys
 # Get the absolute path to the project root
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
 from backend.utils.preprocessing import Preprocessor
@@ -24,7 +24,7 @@ def test_chunk_to_idea():
     print(ideas)
 
 def test_generate():
-    return generate("Solana Alpenglow White Paper 2025-05-19.pdf", "What is the main idea of the white paper?")
+    return generate("data/", "What is the main idea of the white paper?")
 
 #Testing
 #test_preprocessing()

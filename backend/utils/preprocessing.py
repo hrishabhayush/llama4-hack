@@ -32,7 +32,14 @@ class Preprocessor:
     def process_pdfs(self, sources):
         # for each pdf in sources, convert to text, a list of strings from each page
         text = []
-        reader = PdfReader(sources)
+        for source in sources:
+            text.extend(self.process_1_pdf(source))
+        return text
+    
+    def process_1_pdf(self, source):
+        # for a source, convert to text, a list of strings from each page
+        text = []
+        reader = PdfReader(source)
         #loop through all the pages in the reader
         for page in reader.pages:
             text.append(page.extract_text()) 
@@ -53,7 +60,7 @@ class Preprocessor:
         # Combine all patterns for splitting
         all_patterns = '|'.join(self.section_breaks + self.semantic_markers)
         
-        for text in texts:
+        for page_num,text in enumerate(texts):
             # Clean the text
             text = re.sub(r'\s+', ' ', text).strip()
             

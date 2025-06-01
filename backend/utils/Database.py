@@ -56,7 +56,8 @@ Please format your response exactly like this:
     ]
 }}
 
-Ensure each point is clear and each quotation directly supports its point."""
+Ensure each point is clear and each quotation directly supports its point.
+Do not include any other text in your response outside of the JSON object."""
         
         response_data = Llama.inference(prompt)
 
