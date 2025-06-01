@@ -263,8 +263,12 @@ class Preprocessor:
             if reader.metadata and reader.metadata.get('/Title'):
                 title = reader.metadata.get('/Title')
             if not title:
-                # Remove directory path and .pdf extension
-                title = os.path.basename(source)
+                # Normalize path separators and get the file name
+                normalized_path = os.path.normpath(source)
+                # Split the path into components and get the last part
+                path_components = os.path.normpath(normalized_path).split(os.sep)
+                # Get the last component (filename)
+                title = path_components[-1]
                 if title.lower().endswith('.pdf'):
                     title = title[:-4]  # Remove .pdf extension
             
@@ -279,7 +283,9 @@ class Preprocessor:
         except Exception as e:
             self.logger.error(f"Error processing PDF {source}: {str(e)}")
             # Even if there's an error, return with cleaned up filename as title
-            title = os.path.basename(source)
+            normalized_path = os.path.normpath(source)
+            path_components = normalized_path.split(os.sep)
+            title = path_components[-1]
             if title.lower().endswith('.pdf'):
                 title = title[:-4]
             text = [{'text': '', 'title': title}]
