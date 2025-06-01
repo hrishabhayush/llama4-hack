@@ -36,11 +36,11 @@ class Preprocessor:
         self.logger = logger
         
         # Define chunking parameters from environment variables
-        print(f"Reading MIN_CHUNK from env: {os.getenv('MIN_CHUNK')}")
-        print(f"Reading MAX_CHUNK from env: {os.getenv('MAX_CHUNK')}")
+        print(f"Reading MIN_CHUNK from env: {os.getenv('MIN_CHUNK_SIZE')}")
+        print(f"Reading MAX_CHUNK from env: {os.getenv('MAX_CHUNK_SIZE')}")
         
-        self.min_chunk_size = int(os.getenv('MIN_CHUNK'))
-        self.max_chunk_size = int(os.getenv('MAX_CHUNK'))
+        self.min_chunk_size = int(os.getenv('MIN_CHUNK_SIZE'))
+        self.max_chunk_size = int(os.getenv('MAX_CHUNK_SIZE'))
         
         # Define section break patterns
         self.section_breaks = [

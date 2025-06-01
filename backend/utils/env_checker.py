@@ -143,15 +143,20 @@ def check_environment() -> None:
             'validator': _validate_log_level,
             'error_msg': "LOG_LEVEL must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL"
         },
-        'MIN_CHUNK': {
+        'MIN_CHUNK_SIZE': {
             'required': True,
             'validator': _validate_chunk_size,
-            'error_msg': "MIN_CHUNK must be a positive integer"
+            'error_msg': "MIN_CHUNK_SIZE must be a positive integer"
         },
-        'MAX_CHUNK': {
+        'MAX_CHUNK_SIZE': {
             'required': True,
-            'validator': lambda x: _validate_chunk_size(x) and int(x) > int(os.getenv('MIN_CHUNK', '0')),
-            'error_msg': "MAX_CHUNK must be a positive integer greater than MIN_CHUNK"
+            'validator': lambda x: _validate_chunk_size(x) and int(x) > int(os.getenv('MIN_CHUNK_SIZE', '0')),
+            'error_msg': "MAX_CHUNK_SIZE must be a positive integer greater than MIN_CHUNK_SIZE"
+        },
+        'MAX_WORKERS_PER_CHUNK': {
+            'required': True,
+            'validator': _validate_chunk_size,
+            'error_msg': "MAX_WORKERS_PER_CHUNK must be a positive integer"
         }
     }
     
