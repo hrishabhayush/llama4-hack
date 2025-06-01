@@ -1,9 +1,9 @@
 "use client";
 import {
-    ResizableHandle,
-    ResizablePanel,
-    ResizablePanelGroup,
-  } from "@/components/ui/resizable"
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import {
@@ -84,70 +84,69 @@ export function Right() {
     setIsLoading(false);
   };
 
-    return (
-        <ResizablePanel defaultSize={35} minSize={10} maxSize={40}>
-          <div className="h-full flex flex-col p-6 bg-white">
-            {/* Messages area */}
-            <div className="flex-1 overflow-y-auto mb-4 space-y-3">
-              {messages.map((message) => (
-                <div key={message.id} className="w-full">
-                  <div className={`w-full ${
-                    message.role === 'user' 
-                      ? 'bg-gray-700 text-white rounded-lg px-3 py-2' 
-                      : 'text-muted-foreground px-3'
-                  }`}>
-                    <p className="text-sm">{message.content}</p>
-                  </div>
-                </div>
-              ))}
+  return (
+    <ResizablePanel defaultSize={35} minSize={10} maxSize={40}>
+      <div className="h-full flex flex-col p-6 bg-white">
+        {/* Messages area */}
+        <div className="flex-1 overflow-y-auto mb-4 space-y-3">
+          {messages.map((message) => (
+            <div key={message.id} className="w-full">
+              <div className={`w-full ${message.role === 'user'
+                  ? 'bg-gray-700 text-white rounded-lg px-3 py-2'
+                  : 'text-muted-foreground px-3'
+                }`}>
+                <p className="text-sm">{message.content}</p>
+              </div>
             </div>
+          ))}
+        </div>
 
-            {/* Unified input box */}
-            <div className="w-full bg-white border border-input rounded-xl p-3 flex flex-col gap-2">
-              {/* Context label */}
-              <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <span className="font-medium">@ Add context</span>
-              </div>
-              {/* Textarea */}
-              <Textarea 
-                placeholder="Plan, search, write anything" 
-                className="mb-0 bg-white border-white border-none shadow-none resize-none focus-visible:ring-0 focus-visible:border-none"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              {/* Action row */}
-              <div className="flex items-center gap-2 mt-1">
-                {/* Dropdown (Agent/Ask) */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="font-semibold">{selectedRole}</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-25" align="start">
-                    <DropdownMenuItem onClick={() => setSelectedRole("Agent")}> 
-                      <Infinity />
-                      <span className="text-xs">Agent</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedRole("Ask")}> 
-                      <MessageSquare />
-                      <span className="text-xs">Ask</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <div className="flex items-center gap-2 ml-auto">
-                  {/* Image upload button */}
-                  <label className="cursor-pointer">
-                    <Image />
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                  </label>
-                  {/* Send/Stop button */}
-                  <button onClick={isLoading ? handleStop : handleSend} className="cursor-pointer">
-                    {isLoading ? <CircleStop /> : <SendHorizontal />}
-                  </button>
-                </div>
-              </div>
+        {/* Unified input box */}
+        <div className="w-full bg-white border border-input rounded-xl p-3 flex flex-col gap-2">
+          {/* Context label */}
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
+            <span className="font-medium">@ Add context</span>
+          </div>
+          {/* Textarea */}
+          <Textarea
+            placeholder="Plan, search, write anything"
+            className="mb-0 bg-white border-white border-none shadow-none resize-none focus-visible:ring-0 focus-visible:border-none"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          {/* Action row */}
+          <div className="flex items-center gap-2 mt-1">
+            {/* Dropdown (Agent/Ask) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="font-semibold">{selectedRole}</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-25" align="start">
+                <DropdownMenuItem onClick={() => setSelectedRole("Agent")}>
+                  <Infinity />
+                  <span className="text-xs">Agent</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedRole("Ask")}>
+                  <MessageSquare />
+                  <span className="text-xs">Ask</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="flex items-center gap-2 ml-auto">
+              {/* Image upload button */}
+              <label className="cursor-pointer">
+                <Image />
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+              </label>
+              {/* Send/Stop button */}
+              <button onClick={isLoading ? handleStop : handleSend} className="cursor-pointer">
+                {isLoading ? <CircleStop /> : <SendHorizontal />}
+              </button>
             </div>
           </div>
-        </ResizablePanel>
-    )
+        </div>
+      </div>
+    </ResizablePanel>
+  )
 }
