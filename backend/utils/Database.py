@@ -1,5 +1,7 @@
 #Class for an idea
-from llama import Llama
+import json
+from .llama import Llama
+
 class Idea:
     def __init__(self, point, chunk_id, quotation_id):
         # implementation
@@ -30,11 +32,11 @@ class Chunk:
         Chunk._point_instance_count += 1
         return Chunk._point_instance_count
     
-    def chunk_to_idea(self, json):
+    def chunk_to_idea(self,chunk):
         '''
         This function takes a json object with a "text" field, return a list of idea objects
         '''
-        chunk_text = json["text"]
+        chunk_text= chunk["text"]
         prompt = f"""Summarise the following text into 2 main points. Each point should be concise (1-3 sentences) and supported by a direct quotation.
 
 Text to summarize:
@@ -56,14 +58,12 @@ Please format your response exactly like this:
 
 Ensure each point is clear and each quotation directly supports its point."""
         
-        response = Llama.inference(prompt)
-        
-        print("Raw LLM Response:", response)  # Debug print
+        response_data = Llama.inference(prompt)
+
+        print("Raw LLM Response: \n\n\n", response_data)  # Debug print
         
         # Parse the response and create Idea instances
         try:
-            response_data=response.json()["completion_message"]["content"]["text"]
-            print("Parsed Response Data:", response_data)  # Debug print
             ideas = []
             for point in response_data["main_points"]:
                 idea = Idea(
@@ -73,11 +73,11 @@ Ensure each point is clear and each quotation directly supports its point."""
                 )
                 ideas.append(idea)
                 self.quotation[idea.quotation_id] = point["quotation"]
-            print("Created Ideas:", [idea.to_string() for idea in ideas])  # Debug print
+            print("\n\n\nCreated Ideas:", [idea.to_string() for idea in ideas])  # Debug print
             return ideas
         except json.JSONDecodeError as e:
             print("Error parsing JSON:", e)  # Debug print
-            print("Failed Response:", response)  # Debug print
+            print("Failed Response:", response_data)  # Debug print
             return []
     
     def to_string(self):

@@ -6,6 +6,7 @@ sys.path.insert(0, project_root)
 
 from backend.utils.preprocessing import Preprocessor
 from backend.utils.Database import Chunk
+
 def test_preprocessing():
     preprocessor = Preprocessor()
     pdf_texts = preprocessor.process_pdfs("Solana Alpenglow White Paper 2025-05-19.pdf")
@@ -13,10 +14,15 @@ def test_preprocessing():
     print(chunks)
 
 def test_chunk_to_idea():
-    chunk = Chunk("Solana Alpenglow White Paper 2025-05-19.pdf", "1")
-    ideas = chunk.chunk_to_idea(chunk[0])
+    preprocessor = Preprocessor()
+    pdf_texts = preprocessor.process_pdfs("Solana Alpenglow White Paper 2025-05-19.pdf")
+    chunks = preprocessor.text_to_chunks(pdf_texts)
+    chunk = Chunk("Solana Alpenglow White Paper 2025-05-19.pdf", "Quentin Kniep")
+    ideas = chunk.chunk_to_idea(chunks[0])
+    
     print(ideas)
 
 #Testing
 #test_preprocessing()
-test_chunk_to_idea()
+if __name__ == "__main__":
+    test_chunk_to_idea()
