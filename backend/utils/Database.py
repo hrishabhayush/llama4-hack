@@ -3,10 +3,10 @@ import json
 from .LLMRequest import LLMRequest
 import re
 import os
-from dotenv import load_dotenv
+from backend.utils.env_checker import get_environment_config
 
 # Load environment variables
-load_dotenv()
+ENV_CONFIG = get_environment_config()
 
 class Idea:
     def __init__(self, point, chunk_id, quotation_id):
@@ -30,7 +30,7 @@ class Chunk:
         self.chunk_id = self.chunk_id_generator()
         self.quotation = {}
         # Use MAX_WORKERS_PER_CHUNK from environment variables
-        self._max_workers = int(os.getenv('MAX_WORKERS_PER_CHUNK', '10'))
+        self._max_workers = ENV_CONFIG['max_workers_per_chunk']
         # TODO: we should try to take in page numbers for better citations.
     
     def chunk_id_generator(self):
@@ -125,7 +125,7 @@ Do not consider any references or citations."""
             print(f"Unexpected error processing chunk: {e}")
             return []
     
-    def chunk_to_idea(self, chunk, debug=os.getenv("DEBUG").lower() == "true"):
+    def chunk_to_idea(self, chunk, debug=ENV_CONFIG['debug_mode']):
         '''
         This function takes a json object with a "text" field, return a list of idea objects
         If multiple chunks are provided, processes them concurrently

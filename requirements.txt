@@ -1,8 +1,12 @@
+fastapi==0.115.12
 llama_api_client==0.1.1
 numpy==2.2.6
 PyPDF2==3.0.1
 python-dotenv==1.1.0
 qdrant_client==1.14.2
+Requests==2.32.3
 sentence_transformers==4.1.0
 torch==2.7.0
 tqdm==4.67.1
+python-multipart==0.0.20
+uvicorn==0.34.3

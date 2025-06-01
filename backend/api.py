@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, FileResponse, Response
 from backend.utils.env_checker import get_environment_config
 from backend.utils.db_log import setup_logger
 from backend.algo.core import cluster_ideas, get_cluster_summaries
+from backend.utils.env_checker import check_environment
 
 # Initialize environment once at startup
 check_environment()
@@ -80,7 +81,7 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
     client = create_vector_db(ideas)
     
     # Run k-means clustering on all ideas
-    clusters, centroids = cluster_ideas(ideas)
+    clusters, centroids = cluster_ideas(ideas, client)
     
     # Find similar ideas for each cluster centroid
     similar_ideas = []
@@ -92,11 +93,15 @@ def generate(source_dir: str, prompt: str, debug: bool = os.getenv("DEBUG", "tru
     print("\nSimilar Ideas and Quotations:")
     for idea in similar_ideas:
         print(f"\nMain Point: {idea['main_point']}")
-        print(f"Quotation: {idea['quotation']}")
+        quotation = chunk_obj.quotation.get(idea['quotation_id'], "Quotation not found")
+        print(f"Quotation: {quotation}")
         print(f"Similarity Score: {idea['similarity_score']}")
     
     # format the response using Llama
-    context = "\n".join([f"Main point: {idea['main_point']}\nQuotation: {idea['quotation']}" for idea in similar_ideas])
+    context = "\n".join([
+        f"Main point: {idea['main_point']}\nQuotation: {chunk_obj.quotation.get(idea['quotation_id'], 'Quotation not found')}" 
+        for idea in similar_ideas
+    ])
     llama_prompt = f"""You are an expert research assistant. Using the following context from academic sources, provide a comprehensive answer to the user's question.
 
 User's question: {prompt}
