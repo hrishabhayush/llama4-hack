@@ -3,22 +3,17 @@
 # Sentence Transformers is used to vectorize the Ideas
 # Qdrant is used to store the embeddings
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.http.models import Distance, VectorParams
-import pickle
 import os
-from pathlib import Path
-from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from typing import List
 from .Database import Idea
+from .env_checker import check_environment, EnvironmentError
 
-# Load environment variables
-env_path = Path(__file__).parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+# Check environment variables before proceeding
+check_environment()
 
 # Initialize the sentence transformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -29,7 +24,9 @@ def get_qdrant_client():
     Returns:
         client: QdrantClient instance
     """
-    if DEBUG:
+    debug_mode = os.getenv('DEBUG', 'True').lower() == 'true'
+    
+    if debug_mode:
         # Use local Qdrant instance in debug mode
         client = QdrantClient(path="./qdrant_data")
         print("Using local Qdrant instance (Debug mode)")
@@ -37,8 +34,6 @@ def get_qdrant_client():
         # Use production Qdrant instance
         qdrant_url = os.getenv('QDRANT_URL')
         qdrant_api_key = os.getenv('QDRANT_API_KEY')
-        if not qdrant_url:
-            raise ValueError("QDRANT_URL environment variable not set")
         
         client = QdrantClient(
             url=qdrant_url,
