@@ -10,3 +10,28 @@ Llama on Fly aims to revolutionize the way we interact with text and writing too
 - Intuitive text editing
 - Bubble Map to for aided creation of novel ideas
 - Implementation of Meta's Llama API
+
+## Getting Started
+
+To get started with the Llama on Fly, follow these steps:
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd llama4-hack
+   ```
+3. Install the necessary dependencies:
+   ```bash
+   npm install
+   ```
+4. Run the application:
+   ```bash
+   npm start
+   ```
+
+## License
+
+This project is licensed under the MIT License.
