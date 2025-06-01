@@ -23,8 +23,8 @@ export function Left() {
           <Image
             src="/llama.png"
             alt="Background-removed Llama-Logo"
-            width={40}
-            height={40}
+            width={50}
+            height={55}
             className="object-contain"
           />
           <span className="mr-2 font-bold font-mono text-[14px]">Llama on Fly</span>

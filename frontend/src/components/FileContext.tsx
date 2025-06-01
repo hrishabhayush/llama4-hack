@@ -6,6 +6,7 @@ export type FileType = {
   name: string;
   path: string;
   content: string;
+  type?: 'text' | 'graph'; // Add type to distinguish between text files and graph files
 };
 
 const initialFiles: FileType[] = [
@@ -13,21 +14,79 @@ const initialFiles: FileType[] = [
     name: "Left.tsx",
     path: "frontend/src/components/Left.tsx",
     content: "// Content of Left.tsx...",
+    type: "text",
   },
   {
     name: "Right.tsx",
     path: "frontend/src/components/Right.tsx",
     content: "// Content of Right.tsx...",
+    type: "text",
   },
   {
     name: "Center.tsx",
     path: "frontend/src/components/Center.tsx",
     content: "// Content of Center.tsx...",
+    type: "text",
   },
   {
     name: "ThreePanel.tsx",
     path: "frontend/src/components/ThreePanel.tsx",
     content: "// Content of ThreePanel.tsx...",
+    type: "text",
+  },
+  {
+    name: "KnowledgeGraph.graph",
+    path: "knowledge-map/KnowledgeGraph.graph",
+    content: `{
+  "nodes": [
+    { "id": "1", "label": "What is AI?", "important": true },
+    { "id": "2", "label": "Machine Learning", "important": true },
+    { "id": "3", "label": "Deep Learning", "important": true },
+    { "id": "4", "label": "Neural Networks", "important": true },
+    { "id": "5", "label": "Natural Language Processing", "important": true },
+    { "id": "6", "label": "Computer Vision", "important": false },
+    { "id": "7", "label": "Reinforcement Learning", "important": false },
+    { "id": "8", "label": "Supervised Learning", "important": false },
+    { "id": "9", "label": "Unsupervised Learning", "important": false },
+    { "id": "10", "label": "Transformers", "important": false },
+    { "id": "11", "label": "GPT Models", "important": false },
+    { "id": "12", "label": "BERT", "important": false },
+    { "id": "13", "label": "CNN", "important": false },
+    { "id": "14", "label": "RNN", "important": false },
+    { "id": "15", "label": "LSTM", "important": false },
+    { "id": "16", "label": "Attention Mechanism", "important": false },
+    { "id": "17", "label": "Backpropagation", "important": false },
+    { "id": "18", "label": "Gradient Descent", "important": false },
+    { "id": "19", "label": "Overfitting", "important": false },
+    { "id": "20", "label": "Transfer Learning", "important": false }
+  ],
+  "edges": [
+    { "source": "1", "target": "2", "weight": 0.9 },
+    { "source": "2", "target": "3", "weight": 0.8 },
+    { "source": "2", "target": "8", "weight": 0.7 },
+    { "source": "2", "target": "9", "weight": 0.7 },
+    { "source": "3", "target": "4", "weight": 0.9 },
+    { "source": "1", "target": "5", "weight": 0.6 },
+    { "source": "1", "target": "6", "weight": 0.6 },
+    { "source": "2", "target": "7", "weight": 0.6 },
+    { "source": "4", "target": "13", "weight": 0.8 },
+    { "source": "4", "target": "14", "weight": 0.8 },
+    { "source": "14", "target": "15", "weight": 0.9 },
+    { "source": "5", "target": "10", "weight": 0.8 },
+    { "source": "10", "target": "11", "weight": 0.9 },
+    { "source": "10", "target": "12", "weight": 0.8 },
+    { "source": "10", "target": "16", "weight": 0.9 },
+    { "source": "6", "target": "13", "weight": 0.8 },
+    { "source": "4", "target": "17", "weight": 0.7 },
+    { "source": "17", "target": "18", "weight": 0.8 },
+    { "source": "2", "target": "19", "weight": 0.5 },
+    { "source": "3", "target": "20", "weight": 0.7 },
+    { "source": "8", "target": "18", "weight": 0.6 },
+    { "source": "16", "target": "11", "weight": 0.8 },
+    { "source": "16", "target": "12", "weight": 0.7 }
+  ]
+}`,
+    type: "graph",
   },
 ];
 

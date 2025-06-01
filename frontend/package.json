@@ -17,6 +17,8 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cytoscape": "^3.32.0",
+    "cytoscape-cose-bilkent": "^4.1.0",
     "lucide-react": "^0.511.0",
     "next": "15.3.3",
     "react": "^19.1.0",
